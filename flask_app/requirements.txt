@@ -1,0 +1,8 @@
+Flask
+Werkzeug
+pandas
+numpy
+scipy
+matplotlib
+openpyxl
+pulp

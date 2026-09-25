@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Baseline Optimization{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-calculator"></i> Baseline Optimization Results
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-check-circle text-success"></i> Status: {{ result.status }}</h4>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="{{ url_for('data_explorer') }}" class="btn btn-light">
+                                <i class="fas fa-backward"></i> Back to Data
+                            </a>
+                            <a href="{{ url_for('stochastic_analysis') }}" class="btn btn-secondary">
+                                <i class="fas fa-random"></i> Run Stochastic Analysis
+                            </a>
+                            <a href="{{ url_for('safety_stock') }}" class="btn btn-success">
+                                <i class="fas fa-shield-alt"></i> Tune Safety Stock
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Key Metrics
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(result.total_cost) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-value">{{ result.status }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Glass Models</div>
+                                <div class="metric-value">{{ result.verres|length }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Weeks</div>
+                                <div class="metric-value">{{ result.weeks|length }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Production Plan Visualization -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-industry"></i> Production Plan
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="image-container">
+                        <img src="data:image/png;base64,{{ production_plot }}" alt="Production Plan">
+                    </div>
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-bordered" id="productionTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Model</th>
+                                    {% for week in result.weeks %}
+                                    <th>Week {{ week }}</th>
+                                    {% endfor %}
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for verre in result.verres %}
+                                <tr>
+                                    <td><strong>{{ verre }}</strong></td>
+                                    {% for week in result.weeks %}
+                                    <td>{{ result.production[verre][week]|int }}</td>
+                                    {% endfor %}
+                                    <td><strong>{{ result.production[verre].values()|sum|int }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-success">
+                                    <td><strong>Total</strong></td>
+                                    {% for week in result.weeks %}
+                                    <td><strong>{{ result.production_totals[week]|int }}</strong></td>
+                                    {% endfor %}
+                                    <td><strong>{{ result.production_totals.values()|sum|int }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Plan Visualization -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-boxes"></i> Inventory Plan
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="image-container">
+                        <img src="data:image/png;base64,{{ stock_plot }}" alt="Inventory Plan">
+                    </div>
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover table-bordered" id="stockTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Model</th>
+                                    {% for week in result.weeks %}
+                                    <th>Week {{ week }}</th>
+                                    {% endfor %}
+                                    <th>Avg</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for verre in result.verres %}
+                                <tr>
+                                    <td><strong>{{ verre }}</strong></td>
+                                    {% for week in result.weeks %}
+                                    <td>{{ result.stocks[verre][week]|int }}</td>
+                                    {% endfor %}
+                                    <td><strong>{{ result.stocks[verre].values()|sum|float/result.weeks|length|round(1) }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Constraint Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="card-title mb-0 text-dark">
+                        <i class="fas fa-balance-scale"></i> Constraint Analysis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Analysis of constraint slack and dual values (shadow prices)
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="constraintsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Constraint</th>
+                                    <th>Dual Value</th>
+                                    <th>Slack</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for constraint in result.constraints[:10] %}
+                                <tr>
+                                    <td>{{ constraint.name }}</td>
+                                    <td>{{ "%.4f"|format(constraint.pi) }}</td>
+                                    <td>{{ "%.2f"|format(constraint.slack) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTables
+    $('#productionTable').DataTable({
+        paging: false,
+        searching: false,
+        info: false,
+        scrolling: true
+    });
+    
+    $('#stockTable').DataTable({
+        paging: false,
+        searching: false,
+        info: false,
+        scrolling: true
+    });
+    
+    $('#constraintsTable').DataTable({
+        paging: false,
+        searching: true,
+        info: false
+    });
+    
+    // Remove loading overlay
+    $('#loadingOverlay').removeClass('active');
+});
+</script>
+{% endblock %}

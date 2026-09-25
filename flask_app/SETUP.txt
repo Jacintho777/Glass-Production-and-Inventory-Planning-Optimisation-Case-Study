@@ -1,0 +1,139 @@
+================================================================================
+SUPPLY CHAIN OPTIMIZATION - FLASK APPLICATION SETUP GUIDE
+================================================================================
+
+QUICK START:
+-----------
+
+1. Open Command Prompt or Terminal
+
+2. Navigate to the flask_app directory:
+   cd "C:\Users\mpete\OneDrive\Bureau\Jacintho\PrOS\Mistral Test\flask_app"
+
+3. Install dependencies:
+   pip install -r requirements.txt
+
+4. Run the application:
+   python app.py
+
+5. Open your browser and go to: http://localhost:5000
+
+
+REQUIREMENTS:
+------------
+- Python 3.8 or higher
+- pip package manager
+- Internet connection (for downloading packages)
+
+
+DEPENDENCIES INSTALLED:
+----------------------
+- Flask (web framework)
+- pandas (data manipulation)
+- numpy (numerical operations)
+- PuLP (optimization solver)
+- scipy (statistical functions)
+- matplotlib (visualization)
+- openpyxl (Excel file reading)
+
+
+USAGE:
+------
+
+Step 1: Upload your data
+- Use the same Excel file format as case_study3.xlsx
+- File must have two sheets: "Demandes" and "DonneesSup"
+- Index column must be named "Modèles" in both sheets
+
+Step 2: Explore and Edit Data
+- View data in interactive tables
+- Click on any cell to edit values
+- Save changes to update your analysis
+
+Step 3: Run Baseline Optimization
+- Click "Run Optimization" button
+- View production and inventory plans
+- Analyze constraint information
+
+Step 4: Run Stochastic Analysis
+- Click "Stochastic Analysis" button
+- Wait for distribution fitting and Monte Carlo simulation (1-2 minutes)
+- View cost distributions and decision variability
+
+Step 5: Tune Safety Stock
+- Set safety stock levels for each glass model
+- Run optimization with different configurations
+- Compare results using the history table
+- Find the best balance between cost and risk mitigation
+
+
+IMPORTANT NOTES:
+----------------
+
+1. The Monte Carlo simulation with 100 iterations may take 1-2 minutes to complete
+   - You can reduce this in app.py by changing num_iterations parameter
+
+2. For production use, implement:
+   - Database storage (currently uses in-memory storage)
+   - User authentication
+   - Proper session management
+
+3. The application is designed for educational and research purposes
+
+4. All optimization uses the CBC solver (included with PuLP)
+
+
+TROUBLESHOOTING:
+---------------
+
+Problem: File upload fails
+Solution: Ensure your Excel file has the correct sheets (Demandes, DonneesSup)
+
+Problem: Optimization takes too long
+Solution: Reduce the number of Monte Carlo iterations in app.py
+
+Problem: Missing dependencies
+Solution: Run "pip install -r requirements.txt" again
+
+Problem: Port 5000 already in use
+Solution: Edit app.py and change the port in the last line
+
+
+FILES CREATED:
+--------------
+
+flask_app/
+├── app.py              # Main application (27KB)
+├── requirements.txt    # Dependencies
+├── README.md           # Documentation
+├── SETUP.txt           # This file
+├── templates/
+│   ├── base.html       # Base template
+│   ├── index.html      # Upload page
+│   ├── data_explorer.html  # Data editing
+│   ├── optimization.html   # Optimization results
+│   ├── stochastic.html      # Monte Carlo results
+│   └── safety_stock.html    # Safety stock tuning
+└── uploads/            # Uploaded files (created automatically)
+
+
+NEXT STEPS:
+----------
+
+1. Test with your case_study3.xlsx file
+2. Explore the data editing features
+3. Run baseline optimization
+4. Execute stochastic analysis
+5. Tune safety stock parameters
+6. Compare results across different configurations
+
+
+SUPPORT:
+--------
+
+For issues or questions, refer to:
+- The original Jupyter notebook (case_study3.ipynb)
+- This README.md file
+- The inline comments in app.py
+
+================================================================================

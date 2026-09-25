@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Supply Chain Optimizer - Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title text-center">
+                        <i class="fas fa-upload"></i> Upload Your Data
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-info-circle text-primary"></i> About</h4>
+                            <p class="text-muted">
+                                This application helps you optimize glass manufacturing production planning
+                                under demand uncertainty. Upload your Excel file to get started.
+                            </p>
+                            
+                            <h5><i class="fas fa-check-circle text-success"></i> Features</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-table text-primary"></i> Load and explore your data</li>
+                                <li class="mb-2"><i class="fas fa-edit text-primary"></i> Edit values interactively</li>
+                                <li class="mb-2"><i class="fas fa-calculator text-primary"></i> Run baseline optimization</li>
+                                <li class="mb-2"><i class="fas fa-random text-primary"></i> Perform Monte Carlo simulation</li>
+                                <li class="mb-2"><i class="fas fa-shield-alt text-primary"></i> Tune safety stock parameters</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary">
+                                        <i class="fas fa-file-excel"></i> Required File Format
+                                    </h5>
+                                    <p class="card-text">
+                                        Your Excel file must contain two sheets:
+                                    </p>
+                                    <ul>
+                                        <li><strong>Demandes</strong> - Demand data with 'Modèles' as index</li>
+                                        <li><strong>DonneesSup</strong> - Additional parameters with 'Modèles' as index</li>
+                                    </ul>
+                                    <p class="text-muted small">
+                                        Example structure: 12 weeks of demand data, 6 glass models
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <h4><i class="fas fa-rocket"></i> Get Started</h4>
+                        <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <input type="file" 
+                                       name="file" 
+                                       id="fileInput" 
+                                       class="form-control form-control-lg" 
+                                       accept=".xlsx" 
+                                       required>
+                                <label for="fileInput" class="form-label mt-2">
+                                    <i class="fas fa-file-import"></i> Select Excel File (.xlsx)
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload"></i> Upload & Continue
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4 justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-secondary">
+                    <h4 class="card-title text-center"><i class="fas fa-compass"></i> Workflow Overview</h4>
+                </div>
+                <div class="card-body">
+                    <div class="step-indicator">
+                        <div class="step active">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Upload Data</div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Explore & Edit</div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Run Optimization</div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Stochastic Analysis</div>
+                            <div class="step-line"></div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">5</div>
+                            <div class="step-label">Tune Safety Stock</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Update step indicator on page load
+    updateStepIndicator();
+});
+
+function updateStepIndicator() {
+    // This would be updated based on current progress
+    // For now, just keep step 1 active
+}
+</script>
+{% endblock %}

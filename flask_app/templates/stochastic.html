@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Stochastic Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-random"></i> Stochastic Analysis Results
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-check-circle text-success"></i> Monte Carlo Simulation Complete</h4>
+                            <p class="text-muted">100 iterations with uncertain demand</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <a href="{{ url_for('data_explorer') }}" class="btn btn-light">
+                                <i class="fas fa-backward"></i> Back to Data
+                            </a>
+                            <a href="{{ url_for('baseline_optimization') }}" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> Baseline Optimization
+                            </a>
+                            <a href="{{ url_for('safety_stock') }}" class="btn btn-success">
+                                <i class="fas fa-shield-alt"></i> Safety Stock Tuning
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribution Fitting Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-bar"></i> Demand Distribution Fitting
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Best-fit distributions for each glass model based on historical demand data
+                    </p>
+                    <div class="row">
+                        {% for verre in verres %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ verre }}</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">
+                                            <strong>Distribution:</strong> 
+                                            {{ fitted_distributions[verre]['distribution']|capitalize }}
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>KS Test p-value:</strong> 
+                                            {{ "%.4f"|format(fitted_distributions[verre]['p_value']) }}
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Mean:</strong> {{ "%.2f"|format(fitted_distributions[verre]['mean']) }}
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Std Dev:</strong> {{ "%.2f"|format(fitted_distributions[verre]['std']) }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cost Distribution Visualization -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-area"></i> Cost Distribution Analysis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-chart-bar"></i> Histogram</h5>
+                            <div class="image-container">
+                                <img src="data:image/png;base64,{{ hist_plot }}" alt="Cost Histogram">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-box"></i> Box Plot</h5>
+                            <div class="image-container">
+                                <img src="data:image/png;base64,{{ box_plot }}" alt="Cost Box Plot">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-chart-line"></i> Cumulative Distribution Function</h5>
+                            <div class="image-container">
+                                <img src="data:image/png;base64,{{ cdf_plot }}" alt="Cost CDF">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistical Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-calculator"></i> Statistical Summary
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Minimum Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.min) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Mean Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.mean) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Median Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.median) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Maximum Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.max) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Std Deviation</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.std) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Coefficient of Variation</div>
+                                <div class="metric-value">{{ "%.1f"|format(mc_result.statistics.cv_percent) }}%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">5th Percentile</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.p5) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">95th Percentile</div>
+                                <div class="metric-value">${{ "%.2f"|format(mc_result.statistics.p95) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-lightbulb"></i> Key Insights:</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">
+                                            <strong>Cost Range:</strong> 
+                                            ${{ "%.2f"|format(mc_result.statistics.min) }} - 
+                                            ${{ "%.2f"|format(mc_result.statistics.max) }}
+                                            <span class="badge bg-primary ms-2">
+                                                ${{ "%.2f"|format(mc_result.statistics.max - mc_result.statistics.min) }} spread
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Uncertainty Impact:</strong> 
+                                            Demand uncertainty creates a {{ "%.1f"|format(mc_result.statistics.cv_percent) }}% 
+                                            coefficient of variation in total cost
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Optimal Solutions:</strong> 
+                                            {{ mc_result.statistics.optimal_count }} out of 
+                                            {{ mc_result.statistics.total_iterations }} iterations
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Risk Assessment:</strong> 
+                                            There's a 5% chance cost will exceed 
+                                            ${{ "%.2f"|format(mc_result.statistics.p95) }} 
+                                            (95th percentile)
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Decision Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="card-title mb-0 text-dark">
+                        <i class="fas fa-chart-line"></i> Decision Variability Analysis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        How production and inventory decisions vary across different demand scenarios
+                    </p>
+                    
+                    <h5><i class="fas fa-industry"></i> Production Decision Statistics</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-striped table-hover table-bordered" id="prodStatsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Week</th>
+                                    <th>Mean Production</th>
+                                    <th>Std Dev</th>
+                                    <th>5th Percentile</th>
+                                    <th>95th Percentile</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for verre in verres %}
+                                {% for week in range(1, 7) %}
+                                {% set key = (verre, week) %}
+                                {% if key in mc_result.decision_statistics %}
+                                <tr>
+                                    <td>{{ verre }}</td>
+                                    <td>{{ week }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['production_mean']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['production_std']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['production_p5']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['production_p95']) }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <h5><i class="fas fa-boxes"></i> Inventory Decision Statistics</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="stockStatsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Week</th>
+                                    <th>Mean Inventory</th>
+                                    <th>Std Dev</th>
+                                    <th>5th Percentile</th>
+                                    <th>95th Percentile</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for verre in verres %}
+                                {% for week in range(1, 7) %}
+                                {% set key = (verre, week) %}
+                                {% if key in mc_result.decision_statistics %}
+                                <tr>
+                                    <td>{{ verre }}</td>
+                                    <td>{{ week }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['stock_mean']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['stock_std']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['stock_p5']) }}</td>
+                                    <td>{{ "%.1f"|format(mc_result.decision_statistics[key]['stock_p95']) }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTables
+    $('#prodStatsTable').DataTable({
+        paging: true,
+        pageLength: 10,
+        searching: true,
+        info: true
+    });
+    
+    $('#stockStatsTable').DataTable({
+        paging: true,
+        pageLength: 10,
+        searching: true,
+        info: true
+    });
+    
+    // Remove loading overlay
+    $('#loadingOverlay').removeClass('active');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Safety Stock Tuning{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-shield-alt"></i> Safety Stock Parameter Tuning
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="text-muted mb-0">
+                                Adjust safety stock levels for each glass model to mitigate demand uncertainty risks.
+                                Find the optimal balance between inventory holding costs and service level.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('data_explorer') }}" class="btn btn-light">
+                                <i class="fas fa-backward"></i> Back to Data
+                            </a>
+                            <a href="{{ url_for('baseline_optimization') }}" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> Baseline Optimization
+                            </a>
+                            <a href="{{ url_for('stochastic_analysis') }}" class="btn btn-secondary">
+                                <i class="fas fa-random"></i> Stochastic Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safety Stock Configuration -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-cog"></i> Configure Safety Stock Levels
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('safety_stock') }}">
+                        <div class="row">
+                            {% for verre in verres %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ verre }}</h5>
+                                        <div class="input-group mb-3">
+                                            <input type="number" 
+                                                   name="safety_stock_{{ verre }}" 
+                                                   class="form-control form-control-lg" 
+                                                   value="{% if safety_stock and verre in safety_stock %}{{ safety_stock[verre] }}{% else %}0{% endif %}"
+                                                   min="0" 
+                                                   placeholder="Enter safety stock">
+                                            <span class="input-group-text">units</span>
+                                        </div>
+                                        <div class="form-text">
+                                            Additional units to maintain as safety stock
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-calculator"></i> Run Optimization with Safety Stock
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Section (shown after optimization) -->
+    {% if result and result.success %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> Optimization Results with Safety Stock
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Cost</div>
+                                <div class="metric-value">${{ "%.2f"|format(result.total_cost) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-value">{{ result.status }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Total Safety Stock</div>
+                                <div class="metric-value">{{ safety_stock.values()|sum|int }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="metric-label">Cost Impact</div>
+                                <div class="metric-value text-warning">+{{ "%.2f"|format(0) }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Production Plan -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-industry"></i> Production Plan</h5>
+                            <div class="image-container">
+                                <img src="data:image/png;base64,{{ production_plot }}" alt="Production Plan">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inventory Plan -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-boxes"></i> Inventory Plan</h5>
+                            <div class="image-container">
+                                <img src="data:image/png;base64,{{ stock_plot }}" alt="Inventory Plan">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Model</th>
+                                            {% for week in result.weeks[:6] %}
+                                            <th>W{{ week }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for verre in result.verres %}
+                                        <tr>
+                                            <td><strong>{{ verre }}</strong></td>
+                                            {% for week in result.weeks[:6] %}
+                                            <td>{{ result.production[verre][week]|int }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Model</th>
+                                            {% for week in result.weeks[:6] %}
+                                            <th>W{{ week }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for verre in result.verres %}
+                                        <tr>
+                                            <td><strong>{{ verre }}</strong></td>
+                                            {% for week in result.weeks[:6] %}
+                                            <td>{{ result.stocks[verre][week]|int }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History Section -->
+    {% if history and history|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="card-title mb-0 text-dark">
+                        <i class="fas fa-history"></i> Optimization History
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="historyTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Safety Stock Config</th>
+                                    <th>Total Cost</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in history[-5:] %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        {% for verre in verres %}
+                                        <span class="badge bg-primary me-1">{{ verre }}:{{ item.safety_stock[verre] }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>${{ "%.2f"|format(item.result.total_cost) }}</td>
+                                    <td><span class="badge bg-{% if item.result.status == 'Optimal' %}success{% else %}warning{% endif %}">{{ item.result.status }}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-light" onclick="loadHistory({{ loop.index0 }})">
+                                            <i class="fas faEye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted mt-3">
+                        <i class="fas fa-info-circle"></i> 
+                        Use the history to compare different safety stock configurations and their impact on total cost.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recommendations -->
+    {% if result and result.success %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Start with conservative safety stock:</strong> 
+                            Begin with safety stock levels equal to 1-2 weeks of average demand for each model
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Monitor cost impact:</strong> 
+                            Track how different safety stock levels affect total cost and service levels
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Use the 95th percentile:</strong> 
+                            Consider the P95 cost from stochastic analysis as your target - safety stock should 
+                            bring your baseline cost close to this value
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Iterative tuning:</strong> 
+                            Use trial and error to find the configuration that minimizes cost while maintaining 
+                            acceptable service levels
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Balance trade-offs:</strong> 
+                            Higher safety stock = higher holding costs but better service levels and lower risk of stockouts
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize history table if it exists
+    if ($('#historyTable').length) {
+        $('#historyTable').DataTable({
+            paging: false,
+            searching: false,
+            info: false
+        });
+    }
+    
+    // Remove loading overlay
+    $('#loadingOverlay').removeClass('active');
+});
+
+function loadHistory(index) {
+    alert('Feature to load historical results coming soon!');
+}
+</script>
+{% endblock %}
