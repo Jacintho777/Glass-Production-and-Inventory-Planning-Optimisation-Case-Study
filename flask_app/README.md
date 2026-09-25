@@ -208,7 +208,3 @@ You can customize:
 ## License
 
 This project is provided as-is for educational and research purposes.
-
-## Credits
-
-Based on the original Jupyter notebook case study for supply chain optimization.
